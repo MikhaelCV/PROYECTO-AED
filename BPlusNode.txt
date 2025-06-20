@@ -1,0 +1,19 @@
+public class BPlusNode<K extends Comparable<K>, V> {
+    boolean isLeaf;
+    List<K> keys;
+    List<Object> pointers; // Punteros a hijos (BPlusNode) o valores (V)
+    BPlusNode<K, V> next;  // Para hojas enlazadas
+
+    /**
+     * Crea un nodo B+.
+     *
+     * @param isLeaf Indica si es hoja
+     * @param order  Orden máximo del árbol (número de punteros)
+     */
+    public BPlusNode(boolean isLeaf, int order) {
+        this.isLeaf = isLeaf;
+        this.keys = new ArrayList<>(order);
+        this.pointers = new ArrayList<>(order + 1);
+        this.next = null;
+    }
+}

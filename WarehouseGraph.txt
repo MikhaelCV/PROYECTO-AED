@@ -1,0 +1,132 @@
+public class WarehouseGraph {
+    private final ArrayList<LocationNode> nodes;
+    private final ArrayList<LinkedList<RouteEdge>> adjLists;
+
+    /**
+     * Crea un grafo vacío.
+     */
+    public WarehouseGraph() {
+        this.nodes = new ArrayList<>();
+        this.adjLists = new ArrayList<>();
+    }
+
+    /**
+     * Añade un nodo al grafo.
+     * @param node nodo a añadir
+     */
+    public void addNode(LocationNode node) {
+        if (nodes.contains(node)) return;
+        nodes.add(node);
+        adjLists.add(new LinkedList<>());
+    }
+
+    /**
+     * Elimina un nodo y todas sus aristas.
+     * @param node nodo a eliminar
+     * @throws NodeNotFoundException si no existe
+     */
+    public void removeNode(LocationNode node) {
+        int idx = nodes.indexOf(node);
+        if (idx < 0) throw new NodeNotFoundException("Node not found: " + node);
+        nodes.remove(idx);
+        adjLists.remove(idx);
+        // Eliminar aristas entrantes
+        for (LinkedList<RouteEdge> edges : adjLists) {
+            try {
+                edges.removeIf(e -> e.getTo().equals(node));
+            } catch (EmptyStructureException ignored) {}
+        }
+    }
+
+    /**
+     * Añade una arista dirigida ponderada.
+     * @param from nodo origen
+     * @param to nodo destino
+     * @param weight peso de la arista
+     * @throws NodeNotFoundException si algún nodo no existe
+     */
+    public void addEdge(LocationNode from, LocationNode to, double weight) {
+        int i = nodes.indexOf(from);
+        int j = nodes.indexOf(to);
+        if (i < 0 || j < 0) throw new NodeNotFoundException("From or to node not found");
+        adjLists.get(i).add(new RouteEdge(from, to, weight));
+    }
+
+    /**
+     * Elimina la arista dirigida entre dos nodos.
+     * @param from origen
+     * @param to destino
+     * @throws NodeNotFoundException si arista o nodo no existe
+     */
+    public void removeEdge(LocationNode from, LocationNode to) {
+        int i = nodes.indexOf(from);
+        if (i < 0) throw new NodeNotFoundException("Node not found: " + from);
+        LinkedList<RouteEdge> edges = adjLists.get(i);
+        // remove first matching edge
+        try {
+            edges.removeIf(e -> e.getTo().equals(to));
+        } catch (EmptyStructureException ex) {
+            throw new NodeNotFoundException("Edge not found from " + from + " to " + to);
+        }
+    }
+
+    /**
+     * Obtiene las aristas salientes de un nodo.
+     * @param node nodo origen
+     * @return lista de aristas
+     * @throws NodeNotFoundException si nodo no existe
+     */
+    public LinkedList<RouteEdge> getEdges(LocationNode node) {
+        int i = nodes.indexOf(node);
+        if (i < 0) throw new NodeNotFoundException("Node not found: " + node);
+        return adjLists.get(i);
+    }
+
+    /**
+     * Recorrido BFS desde un nodo inicial.
+     */
+    public ArrayList<LocationNode> bfs(LocationNode start) {
+        if (!nodes.contains(start)) throw new NodeNotFoundException("Start node not found");
+        ArrayList<LocationNode> order = new ArrayList<>();
+        Queue<LocationNode> q = new Queue<>();
+        ArrayList<LocationNode> seen = new ArrayList<>();
+        seen.add(start); q.enqueue(start);
+        while (!q.isEmpty()) {
+            LocationNode u = q.dequeue();
+            order.add(u);
+            for (RouteEdge e : getEdges(u)) {
+                LocationNode v = e.getTo();
+                if (!seen.contains(v)) {
+                    seen.add(v);
+                    q.enqueue(v);
+                }
+            }
+        }
+        return order;
+    }
+
+    /**
+     * Recorrido DFS desde un nodo inicial.
+     */
+    public ArrayList<LocationNode> dfs(LocationNode start) {
+        if (!nodes.contains(start)) throw new NodeNotFoundException("Start node not found");
+        ArrayList<LocationNode> order = new ArrayList<>();
+        Stack<LocationNode> stack = new Stack<>();
+        ArrayList<LocationNode> seen = new ArrayList<>();
+        stack.push(start);
+        while (!stack.isEmpty()) {
+            LocationNode u = stack.pop();
+            if (!seen.contains(u)) {
+                seen.add(u);
+                order.add(u);
+                for (RouteEdge e : getEdges(u)) {
+                    stack.push(e.getTo());
+                }
+            }
+        }
+        return order;
+    }
+
+    // Métodos para detección de ciclos, componentes conexas, Dijkstra y A* pueden implementarse
+    // siguiendo patrones similares usando estructuras propias.
+}

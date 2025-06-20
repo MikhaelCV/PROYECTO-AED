@@ -1,0 +1,67 @@
+public class LocationNode {
+    private final String id;
+    private String name;
+    private double x;
+    private double y;
+
+    /**
+     * Crea un nodo de ubicación con coordenadas opcionales.
+     *
+     * @param id   Identificador único del nodo
+     * @param name Nombre descriptivo de la ubicación
+     * @param x    Coordenada X (por ejemplo, metros en planta)
+     * @param y    Coordenada Y (por ejemplo, metros en planta)
+     */
+    public LocationNode(String id, String name, double x, double y) {
+        this.id = Objects.requireNonNull(id, "id no puede ser null");
+        this.name = Objects.requireNonNull(name, "name no puede ser null");
+        this.x = x;
+        this.y = y;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = Objects.requireNonNull(name, "name no puede ser null");
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LocationNode)) return false;
+        LocationNode that = (LocationNode) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("LocationNode{id='%s', name='%s', x=%.2f, y=%.2f}", id, name, x, y);
+    }
+}

@@ -1,0 +1,128 @@
+public class BPlusTree<K extends Comparable<K>, V> {
+    private BPlusNode<K, V> root;
+    private final int order;
+
+    /**
+     * Crea un árbol B+ con el orden especificado.
+     * @param order Máximo número de punteros por nodo (>=3)
+     */
+    public BPlusTree(int order) {
+        if (order < 3) throw new IllegalArgumentException("Order must be at least 3");
+        this.order = order;
+        this.root = new BPlusNode<>(true, order);
+    }
+
+    /**
+     * Inserta un par clave-valor en el árbol.
+     * @param key   Clave a insertar (no null)
+     * @param value Valor asociado
+     */
+    public void insert(K key, V value) {
+        Objects.requireNonNull(key, "Key cannot be null");
+        BPlusNode<K, V> leaf = findLeafNode(key);
+        insertInLeaf(leaf, key, value);
+        if (leaf.keys.size() >= order) {
+            splitLeaf(leaf);
+        }
+    }
+
+    private BPlusNode<K, V> findLeafNode(K key) {
+        BPlusNode<K, V> node = root;
+        while (!node.isLeaf) {
+            int idx = Collections.binarySearch(node.keys, key);
+            int childIndex = idx >= 0 ? idx + 1 : -idx - 1;
+            @SuppressWarnings("unchecked")
+            BPlusNode<K, V> child = (BPlusNode<K, V>) node.pointers.get(childIndex);
+            node = child;
+        }
+        return node;
+    }
+
+    private void insertInLeaf(BPlusNode<K, V> leaf, K key, V value) {
+        int idx = Collections.binarySearch(leaf.keys, key);
+        int insertPos = idx >= 0 ? idx : -idx - 1;
+        leaf.keys.add(insertPos, key);
+        leaf.pointers.add(insertPos, value);
+    }
+
+    private void splitLeaf(BPlusNode<K, V> leaf) {
+        int mid = (order + 1) / 2;
+        BPlusNode<K, V> sibling = new BPlusNode<>(true, order);
+        // Movemos la mitad superior a sibling
+        sibling.keys.addAll(leaf.keys.subList(mid, leaf.keys.size()));
+        sibling.pointers.addAll(leaf.pointers.subList(mid, leaf.pointers.size()));
+        // Eliminamos los elementos movidos
+        leaf.keys.subList(mid, leaf.keys.size()).clear();
+        leaf.pointers.subList(mid, leaf.pointers.size()).clear();
+        // Ajustamos enlaces de lista de hojas
+        sibling.next = leaf.next;
+        leaf.next = sibling;
+        K splitKey = sibling.keys.get(0);
+        insertInParent(leaf, splitKey, sibling);
+    }
+
+    private void insertInParent(BPlusNode<K, V> node, K key, BPlusNode<K, V> sibling) {
+        if (node == root) {
+            BPlusNode<K, V> newRoot = new BPlusNode<>(false, order);
+            newRoot.keys.add(key);
+            newRoot.pointers.add(node);
+            newRoot.pointers.add(sibling);
+            root = newRoot;
+            return;
+        }
+        BPlusNode<K, V> parent = findParent(root, node);
+        int idx = Collections.binarySearch(parent.keys, key);
+        int insertPos = idx >= 0 ? idx + 1 : -idx - 1;
+        parent.keys.add(insertPos, key);
+        parent.pointers.add(insertPos + 1, sibling);
+        if (parent.pointers.size() > order) {
+            splitInternal(parent);
+        }
+    }
+
+    private void splitInternal(BPlusNode<K, V> node) {
+        int midIndex = order / 2;
+        K midKey = node.keys.get(midIndex);
+        BPlusNode<K, V> sibling = new BPlusNode<>(false, order);
+        // Movemos claves y punteros a sibling
+        sibling.keys.addAll(node.keys.subList(midIndex + 1, node.keys.size()));
+        sibling.pointers.addAll(node.pointers.subList(midIndex + 1, node.pointers.size()));
+        // Eliminamos elementos movidos
+        node.keys.subList(midIndex, node.keys.size()).clear();
+        node.pointers.subList(midIndex + 1, node.pointers.size()).clear();
+        insertInParent(node, midKey, sibling);
+    }
+
+    private BPlusNode<K, V> findParent(BPlusNode<K, V> current, BPlusNode<K, V> child) {
+        if (current.isLeaf) return null;
+        for (Object pointer : current.pointers) {
+            @SuppressWarnings("unchecked")
+            BPlusNode<K, V> node = (BPlusNode<K, V>) pointer;
+            if (node == child) {
+                return current;
+            } else if (!node.isLeaf) {
+                BPlusNode<K, V> parent = findParent(node, child);
+                if (parent != null) return parent;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Busca el valor asociado a la clave.
+     * @param key Clave a buscar
+     * @return Optional con el valor si existe
+     */
+    public Optional<V> search(K key) {
+        BPlusNode<K, V> leaf = findLeafNode(key);
+        int idx = Collections.binarySearch(leaf.keys, key);
+        if (idx >= 0) {
+            @SuppressWarnings("unchecked")
+            V value = (V) leaf.pointers.get(idx);
+            return Optional.of(value);
+        }
+        return Optional.empty();
+    }
+
+    // Métodos de eliminación y recorrido de rango pueden añadirse según necesidades
+}

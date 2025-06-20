@@ -1,0 +1,160 @@
+public class ArrayList<T> implements Iterable<T> {
+    private static final int DEFAULT_CAPACITY = 10;
+    private T[] elements;
+    private int size;
+
+    @SuppressWarnings("unchecked")
+    public ArrayList() {
+        this.elements = (T[]) new Object[DEFAULT_CAPACITY];
+        this.size = 0;
+    }
+
+    @SuppressWarnings("unchecked")
+    public ArrayList(int initialCapacity) {
+        if (initialCapacity < 0) {
+            throw new IllegalArgumentException("Capacity must be non-negative");
+        }
+        this.elements = (T[]) new Object[Math.max(initialCapacity, DEFAULT_CAPACITY)];
+        this.size = 0;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    private void ensureCapacity(int minCapacity) {
+        if (minCapacity <= elements.length) return;
+        int newCapacity = elements.length + (elements.length >> 1);
+        if (newCapacity < minCapacity) newCapacity = minCapacity;
+        @SuppressWarnings("unchecked")
+        T[] newArray = (T[]) new Object[newCapacity];
+        System.arraycopy(elements, 0, newArray, 0, size);
+        elements = newArray;
+    }
+
+    public void add(T element) {
+        ensureCapacity(size + 1);
+        elements[size++] = element;
+    }
+
+    public void add(int index, T element) {
+        if (size == 0) throw new EmptyStructureException("Cannot add at position in empty list");
+        checkPositionIndex(index);
+        ensureCapacity(size + 1);
+        System.arraycopy(elements, index, elements, index + 1, size - index);
+        elements[index] = element;
+        size++;
+    }
+
+    public T get(int index) {
+        if (size == 0) throw new EmptyStructureException("Cannot get from empty list");
+        checkElementIndex(index);
+        return elements[index];
+    }
+
+    public T set(int index, T element) {
+        if (size == 0) throw new EmptyStructureException("Cannot set in empty list");
+        checkElementIndex(index);
+        T old = elements[index];
+        elements[index] = element;
+        return old;
+    }
+
+    public T remove(int index) {
+        if (size == 0) throw new EmptyStructureException("Cannot remove from empty list");
+        checkElementIndex(index);
+        T old = elements[index];
+        int numMoved = size - index - 1;
+        if (numMoved > 0) {
+            System.arraycopy(elements, index + 1, elements, index, numMoved);
+        }
+        elements[--size] = null;
+        return old;
+    }
+
+    public boolean remove(T element) {
+        if (size == 0) throw new EmptyStructureException("Cannot remove from empty list");
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == null ? element == null : elements[i].equals(element)) {
+                remove(i);
+                return true;
+            }
+        }
+        throw new NodeNotFoundException("Element not found: " + element);
+    }
+
+    public void clear() {
+        for (int i = 0; i < size; i++) {
+            elements[i] = null;
+        }
+        size = 0;
+    }
+
+    public boolean contains(T element) {
+        return indexOf(element) >= 0;
+    }
+
+    public int indexOf(T element) {
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == null ? element == null : elements[i].equals(element)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T[] toArray() {
+        T[] array = (T[]) new Object[size];
+        System.arraycopy(elements, 0, array, 0, size);
+        return array;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            private int cursor = 0;
+
+            @Override
+            public boolean hasNext() {
+                return cursor < size;
+            }
+
+            @Override
+            public T next() {
+                if (cursor >= size) {
+                    throw new NoSuchElementException();
+                }
+                return elements[cursor++];
+            }
+        };
+    }
+
+    private void checkElementIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+    }
+
+    private void checkPositionIndex(int index) {
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (int i = 0; i < size; i++) {
+            sb.append(elements[i]);
+            if (i < size - 1) sb.append(", ");
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+}

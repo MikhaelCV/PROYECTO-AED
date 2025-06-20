@@ -1,0 +1,50 @@
+public class RouteEdge {
+    private final LocationNode from;
+    private final LocationNode to;
+    private final double weight;
+
+    /**
+     * Construye una arista dirigida con peso.
+     *
+     * @param from   Nodo de origen (no null)
+     * @param to     Nodo de destino (no null)
+     * @param weight Peso asociado (distancia, tiempo, etc.)
+     */
+    public RouteEdge(LocationNode from, LocationNode to, double weight) {
+        this.from = Objects.requireNonNull(from, "Origen no puede ser null");
+        this.to = Objects.requireNonNull(to, "Destino no puede ser null");
+        this.weight = weight;
+    }
+
+    public LocationNode getFrom() {
+        return from;
+    }
+
+    public LocationNode getTo() {
+        return to;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RouteEdge)) return false;
+        RouteEdge that = (RouteEdge) o;
+        return Double.compare(that.weight, weight) == 0 &&
+                from.equals(that.from) &&
+                to.equals(that.to);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(from, to, weight);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s -> %s (%.2f)", from.getId(), to.getId(), weight);
+    }
+}

@@ -1,0 +1,124 @@
+public class Queue<T> implements Iterable<T> {
+    private Node<T> front;
+    private Node<T> rear;
+    private int size;
+
+    /**
+     * Nodo interno de la cola.
+     */
+    private static class Node<T> {
+        T data;
+        Node<T> next;
+        Node(T data) { this.data = data; this.next = null; }
+    }
+
+    /**
+     * Crea una cola vacía.
+     */
+    public Queue() {
+        front = rear = null;
+        size = 0;
+    }
+
+    /**
+     * Añade un elemento al final de la cola.
+     *
+     * @param element elemento a encolar (puede ser null)
+     */
+    public void enqueue(T element) {
+        Node<T> node = new Node<>(element);
+        if (rear == null) {
+            front = rear = node;
+        } else {
+            rear.next = node;
+            rear = node;
+        }
+        size++;
+    }
+
+    /**
+     * Retira y devuelve el elemento al frente de la cola.
+     *
+     * @return elemento desencolado
+     * @throws EmptyStructureException si la cola está vacía
+     */
+    public T dequeue() {
+        if (front == null) {
+            throw new EmptyStructureException("Cannot dequeue from empty queue");
+        }
+        T data = front.data;
+        front = front.next;
+        if (front == null) {
+            rear = null;
+        }
+        size--;
+        return data;
+    }
+
+    /**
+     * Obtiene el elemento al frente sin remover.
+     *
+     * @return elemento en el frente
+     * @throws EmptyStructureException si la cola está vacía
+     */
+    public T peek() {
+        if (front == null) {
+            throw new EmptyStructureException("Cannot peek in empty queue");
+        }
+        return front.data;
+    }
+
+    /**
+     * Indica si la cola está vacía.
+     *
+     * @return true si size == 0
+     */
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    /**
+     * Devuelve el tamaño actual de la cola.
+     *
+     * @return número de elementos
+     */
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            private Node<T> current = front;
+
+            @Override
+            public boolean hasNext() {
+                return current != null;
+            }
+
+            @Override
+            public T next() {
+                if (current == null) {
+                    throw new NoSuchElementException();
+                }
+                T data = current.data;
+                current = current.next;
+                return data;
+            }
+        };
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        Node<T> curr = front;
+        while (curr != null) {
+            sb.append(curr.data);
+            if (curr.next != null) sb.append(", ");
+            curr = curr.next;
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+}
